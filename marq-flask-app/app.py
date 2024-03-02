@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import uuid
+import os
 from google.cloud import storage
 
 app = Flask(__name__)
@@ -42,7 +43,7 @@ def generate_page():
     # Upload the HTML content to Google Cloud Storage
     blob = bucket.blob(filename)
     blob.upload_from_string(html_content, content_type='text/html')
-    blob.make_public()  # Make the file publicly accessible
 
     # Return the URL to the generated page
     return jsonify({'url': blob.public_url})
+

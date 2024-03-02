@@ -1,24 +1,26 @@
 from flask import Flask, request, jsonify
-from google.cloud import storage
 import uuid
+from google.cloud import storage
 
 app = Flask(__name__)
-client = storage.Client()
-bucket = client.bucket('your-bucket-name')
 
 @app.route('/generate', methods=['POST'])
 def generate_page():
-    # Extracting data from the request
+    # Ensure that you have authenticated and set up Google Cloud Storage properly.
+    client = storage.Client()
+    bucket = client.bucket('runapps_default-wwdwyp')
+
+    # Extract data from the POST request
     data = request.json
     title = data.get('title', 'Default Title')
     description = data.get('description', 'Default Description')
     content = data.get('content', 'Default Content')
     image_url = data.get('image_url', '')
 
-    # Generate a unique filename
+    # Generate a unique filename for the HTML file
     filename = f"{uuid.uuid4()}.html"
-    
-    # Generate the HTML content
+
+    # Construct the HTML content
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -37,10 +39,10 @@ def generate_page():
     </html>
     """
 
-    # Upload the HTML to GCS
+    # Upload the HTML content to Google Cloud Storage
     blob = bucket.blob(filename)
     blob.upload_from_string(html_content, content_type='text/html')
-    blob.make_public()
+    blob.make_public()  # Make the file publicly accessible
 
-    # Return the public URL
+    # Return the URL to the generated page
     return jsonify({'url': blob.public_url})

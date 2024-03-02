@@ -1,0 +1,19 @@
+{
+  "name": "package.json",
+  "version": "1.0.0",
+  "description": "runbuild",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mkotterlp/marqapi.git"
+  },
+  "author": "Morgan Kotter",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mkotterlp/marqapi/issues"
+  },
+  "homepage": "https://github.com/mkotterlp/marqapi#readme"
+}

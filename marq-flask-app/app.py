@@ -46,6 +46,26 @@ def generate_page():
         logging.error(f"Error occurred in generate_page: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
+# New endpoint to return the image URL
+@app.route('/image-url/<filename>')
+def get_image_url(filename):
+    try:
+        client = storage.Client()
+        bucket = client.bucket('runapps_default-wwdwyp')
+        blob = bucket.blob(filename)
+
+        # Ensure the blob exists and is public
+        if not blob.exists():
+            return jsonify({'error': 'File not found'}), 404
+
+        # Construct the public URL for the blob
+        image_url = f"https://storage.googleapis.com/{bucket.name}/{blob.name}"
+        return jsonify({'image_url': image_url})
+    except Exception as e:
+        logging.error(f"Failed to fetch image URL: {str(e)}")
+        return jsonify({'error': 'Failed to fetch image URL'}), 500
+
+
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8080))
     app.run(debug=True, host='0.0.0.0', port=port)

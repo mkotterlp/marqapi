@@ -19,6 +19,7 @@ def generate_page():
         description = data.get('description', 'Default Description')
         content = data.get('content', 'Default Content')
         image_url = data.get('image_url', '')
+        pdf_url = data.get('pdf_url', '')
 
         filename = f"{uuid.uuid4()}.html"
         html_content = f"""
@@ -31,10 +32,40 @@ def generate_page():
             <meta property="og:title" content="{title}" />
             <meta property="og:description" content="{description}" />
             <meta property="og:image" content="{image_url}" />
+            <meta property="og:image:alt" content="Real estate listing photo">
+            <meta property="fb:app_id" content="1158479231981260">
         </head>
         <body>
             <h1>{title}</h1>
+            <div id="pdfViewer"></div>
             <p>{content}</p>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+            <script>
+                var pdfUrl = "{pdf_url}";
+                async function renderPdf(url) {{
+                    const pdfData = await fetch(url);
+                    const pdfBlob = await pdfData.blob();
+                    const loadingTask = pdfjsLib.getDocument(pdfBlob);
+                    const pdfDocument = await loadingTask.promise;
+                    const numPages = pdfDocument.numPages;
+                    for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {{
+                        const page = await pdfDocument.getPage(pageNumber);
+                        const scale = 1.0;
+                        const canvas = document.createElement("canvas");
+                        const context = canvas.getContext("2d");
+                        const viewport = page.getViewport({{ scale }});
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        const renderContext = {{
+                            canvasContext: context,
+                            viewport: viewport
+                        }};
+                        await page.render(renderContext).promise;
+                        document.getElementById("pdfViewer").appendChild(canvas);
+                    }}
+                }}
+                renderPdf(pdfUrl);
+            </script>
         </body>
         </html>
         """

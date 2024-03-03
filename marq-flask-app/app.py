@@ -4,7 +4,6 @@ import os
 import requests 
 from google.cloud import storage
 import logging
-from fpdf import FPDF
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -83,32 +82,19 @@ def generate_page():
 def generate_pdf():
     try:
         data = request.json
-        pdf_content = data.get('pdf_content', '')
+        pdf_url = data.get('pdf_url', '')
 
-        if not pdf_content:
-            return jsonify({'error': 'No PDF content provided'}), 400
+        if not pdf_url:
+            return jsonify({'error': 'No PDF URL provided'}), 400
 
         # Generate a unique filename for the PDF file
         filename = f"{uuid.uuid4()}.pdf"
 
-        # Create a PDF object
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.multi_cell(200, 10, txt=pdf_content, align='L')
-
-        # Save the PDF to a temporary file
-        temp_file_path = f"/tmp/{filename}"
-        pdf.output(temp_file_path)
-
-        # Upload the PDF to Google Cloud Storage
+        # Upload the PDF from the provided URL to Google Cloud Storage
         client = storage.Client()
         bucket = client.bucket('runapps_default-wwdwyp')
         pdf_blob = bucket.blob(filename)
-        pdf_blob.upload_from_filename(temp_file_path)
-
-        # Delete the temporary PDF file
-        os.remove(temp_file_path)
+        pdf_blob.upload_from_url(pdf_url)
 
         return jsonify({'pdf_url': pdf_blob.public_url})
     

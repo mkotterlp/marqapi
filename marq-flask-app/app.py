@@ -90,11 +90,18 @@ def generate_pdf():
         # Generate a unique filename for the PDF file
         filename = f"{uuid.uuid4()}.pdf"
 
-        # Upload the PDF from the provided URL to Google Cloud Storage
+        # Download the PDF from the URL
+        response = requests.get(pdf_url)
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to download PDF from URL'}), 500
+
+        pdf_content = response.content
+
+        # Upload the PDF content to Google Cloud Storage
         client = storage.Client()
         bucket = client.bucket('runapps_default-wwdwyp')
         pdf_blob = bucket.blob(filename)
-        pdf_blob.upload_from_url(pdf_url)
+        pdf_blob.upload_from_string(pdf_content)
 
         return jsonify({'pdf_url': pdf_blob.public_url})
     

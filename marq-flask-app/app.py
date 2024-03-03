@@ -69,7 +69,6 @@ def upload_image():
 
         # Upload the image to Google Cloud Storage
         image_blob.upload_from_string(image_content, content_type='image/jpeg')  # Adjust content_type based on the image
-        image_blob.make_public()  # Make the image publicly accessible
 
         return jsonify({'image_url': image_blob.public_url})
     except Exception as e:

@@ -5,25 +5,21 @@ from google.cloud import storage
 import logging
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
 @app.route('/generate', methods=['POST'])
 def generate_page():
     try:
-        # Ensure that you have authenticated and set up Google Cloud Storage properly.
         client = storage.Client()
         bucket = client.bucket('runapps_default-wwdwyp')
 
-        # Extract data from the POST request
         data = request.json
         title = data.get('title', 'Default Title')
         description = data.get('description', 'Default Description')
         content = data.get('content', 'Default Content')
         image_url = data.get('image_url', '')
 
-        # Generate a unique filename for the HTML file
         filename = f"{uuid.uuid4()}.html"
-
-        # Construct the HTML content
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -42,14 +38,12 @@ def generate_page():
         </html>
         """
 
-        # Upload the HTML content to Google Cloud Storage
         blob = bucket.blob(filename)
         blob.upload_from_string(html_content, content_type='text/html')
-
-        # Return the URL to the generated page
+        logging.info(f"HTML file created and uploaded successfully: {blob.public_url}")
         return jsonify({'url': blob.public_url})
     except Exception as e:
-        logging.error(f"Error occurred in generate_page: {e}")
+        logging.error(f"Error occurred in generate_page: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
 if __name__ == "__main__":

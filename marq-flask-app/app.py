@@ -101,7 +101,7 @@ def generate_pdf():
         client = storage.Client()
         bucket = client.bucket('runapps_default-wwdwyp')
         pdf_blob = bucket.blob(filename)
-        pdf_blob.upload_from_string(pdf_content)
+        pdf_blob.upload_from_string(pdf_content, content_type='application/pdf')
 
         return jsonify({'pdf_url': pdf_blob.public_url})
     

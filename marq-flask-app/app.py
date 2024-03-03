@@ -52,3 +52,6 @@ def generate_page():
         logging.error(f"Error occurred in generate_page: {e}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 8080))
+    app.run(debug=True, host='0.0.0.0', port=port)

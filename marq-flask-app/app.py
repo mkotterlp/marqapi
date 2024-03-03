@@ -15,65 +15,101 @@ def generate_page():
         bucket = client.bucket('runapps_default-wwdwyp')
 
         data = request.json
-        title = data.get('title', 'Default Title')
-        description = data.get('description', 'Default Description')
-        content = data.get('content', 'Default Content')
+        title = data.get('title', 'View my listing')
         image_url = data.get('image_url', '')
         pdf_url = data.get('pdf_url', '')
 
         filename = f"{uuid.uuid4()}.html"
         html_content = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{title}</title>
-    <meta property="og:url" content="https://storage.googleapis.com/{bucket.name}/{filename}" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="{title}" />
-    <meta property="og:description" content="{description}" />
-    <meta property="og:image" content="{image_url}" />
-    <meta property="og:image:alt" content="Real estate listing photo">
-    <meta property="fb:app_id" content="1158479231981260">
-</head>
-<body>
-    <h1>{title}</h1>
-    <div id="pdfViewer"></div>
-    <p>{content}</p>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <script>
-        var pdfUrl = "{pdf_url}";
-        async function renderPdf(url) {{
-            const pdfData = await fetch(url);
-            if (!pdfData.ok) {{
-                throw new Error('Failed to fetch the PDF. Status: ' + pdfData.status);
-            }}
-            const pdfBlob = await pdfData.blob();
-            const arrayBuffer = await pdfBlob.arrayBuffer();
-            const loadingTask = pdfjsLib.getDocument({{data: arrayBuffer}});
-            const pdfDocument = await loadingTask.promise;
-            const numPages = pdfDocument.numPages;
-            for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {{
-                const page = await pdfDocument.getPage(pageNumber);
-                const scale = 1.0;
-                const canvas = document.createElement("canvas");
-                const context = canvas.getContext("2d");
-                const viewport = page.getViewport({{ scale }});
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                const renderContext = {{
-                    canvasContext: context,
-                    viewport: viewport
-                }};
-                await page.render(renderContext).promise;
-                document.getElementById("pdfViewer").appendChild(canvas);
-            }}
-        }}
-        renderPdf(pdfUrl);
-    </script>
-</body>
-</html>
-"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>{title}</title>
+            <meta property="og:url" content="https://storage.googleapis.com/{bucket.name}/{filename}" />
+            <meta property="og:type" content="website" />
+            <meta property="og:title" content="{title}" />
+            <meta property="og:description" content="{description}" />
+            <meta property="og:image" content="{image_url}" />
+            <meta property="og:image:alt" content="Real estate listing photo">
+            <meta property="fb:app_id" content="1158479231981260">
+            <style>
+                #pdfViewer {
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    text-align: center;
+                    scroll-behavior: smooth;
+                }
+                .navigation { text-align: center; }
+                .button {
+                    cursor: pointer;
+                    padding: 10px;
+                    margin: 5px;
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                }
+                .button:hover {
+                    background-color: #0056b3;
+                }
+            </style>
+        </head>
+        <body>
+            <div id="pdfViewer"></div>
+            <div class="navigation">
+                <button id="prevPage" class="button">Previous</button>
+                <button id="nextPage" class="button">Next</button>
+            </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+            <script>
+                var pdfUrl = "{pdf_url}";
+                async function renderPdf(url) {{
+                    const pdfData = await fetch(url);
+                    if (!pdfData.ok) {{
+                        throw new Error('Failed to fetch the PDF. Status: ' + pdfData.status);
+                    }}
+                    const pdfBlob = await pdfData.blob();
+                    const arrayBuffer = await pdfBlob.arrayBuffer();
+                    const loadingTask = pdfjsLib.getDocument({{data: arrayBuffer}});
+                    const pdfDocument = await loadingTask.promise;
+                    let currentPageIndex = 0;
+                    const numPages = pdfDocument.numPages;
+                    for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {{
+                        const page = await pdfDocument.getPage(pageNumber);
+                        const scale = 1.0;
+                        const canvas = document.createElement("canvas");
+                        canvas.id = 'page-' + pageNumber;
+                        const context = canvas.getContext("2d");
+                        const viewport = page.getViewport({{ scale }});
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        const renderContext = {{
+                            canvasContext: context,
+                            viewport: viewport
+                        }};
+                        await page.render(renderContext).promise;
+                        document.getElementById("pdfViewer").appendChild(canvas);
+                    }}
 
+                    document.getElementById('nextPage').addEventListener('click', () => {{
+                        if (currentPageIndex < numPages - 1) {{
+                            currentPageIndex++;
+                            document.getElementById('page-' + (currentPageIndex + 1)).scrollIntoView({{ behavior: 'smooth' }});
+                        }}
+                    }});
+
+                    document.getElementById('prevPage').addEventListener('click', () => {{
+                        if (currentPageIndex > 0) {{
+                            currentPageIndex--;
+                            document.getElementById('page-' + (currentPageIndex + 1)).scrollIntoView({{ behavior: 'smooth' }});
+                        }}
+                    }});
+                }}
+                renderPdf(pdfUrl);
+            </script>
+        </body>
+        </html>
+        """
 
         blob = bucket.blob(filename)
         blob.upload_from_string(html_content, content_type='text/html')

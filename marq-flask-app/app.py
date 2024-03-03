@@ -46,24 +46,34 @@ def generate_page():
         logging.error(f"Error occurred in generate_page: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
-# New endpoint to return the image URL
-@app.route('/image-url/<filename>')
-def get_image_url(filename):
+@app.route('/upload-image', methods=['POST'])
+def upload_image():
     try:
+        data = request.json
+        temp_img_url = data.get('temp_img_url')
+        userid = data.get('userid')  # Assuming you might want to use this for something specific
+
+        if not temp_img_url:
+            return jsonify({'error': 'No image URL provided'}), 400
+
+        # Download the image from the provided URL
+        response = requests.get(temp_img_url)
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to download image'}), 500
+
+        image_content = response.content
         client = storage.Client()
         bucket = client.bucket('runapps_default-wwdwyp')
-        blob = bucket.blob(filename)
+        image_blob = bucket.blob(f"{uuid.uuid4()}.jpg")  # Or use another file extension as needed
 
-        # Ensure the blob exists and is public
-        if not blob.exists():
-            return jsonify({'error': 'File not found'}), 404
+        # Upload the image to Google Cloud Storage
+        image_blob.upload_from_string(image_content, content_type='image/jpeg')  # Adjust content_type based on the image
+        image_blob.make_public()  # Make the image publicly accessible
 
-        # Construct the public URL for the blob
-        image_url = f"https://storage.googleapis.com/{bucket.name}/{blob.name}"
-        return jsonify({'image_url': image_url})
+        return jsonify({'image_url': image_blob.public_url})
     except Exception as e:
-        logging.error(f"Failed to fetch image URL: {str(e)}")
-        return jsonify({'error': 'Failed to fetch image URL'}), 500
+        logging.error(f"Error occurred in upload_image: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
 
 
 if __name__ == "__main__":

@@ -28,7 +28,6 @@ def generate_page():
             <meta property="og:url" content="https://storage.googleapis.com/{bucket.name}/{filename}" />
             <meta property="og:type" content="website" />
             <meta property="og:title" content="{title}" />
-            <meta property="og:description" content="{description}" />
             <meta property="og:image" content="{image_url}" />
             <meta property="og:image:alt" content="Real estate listing photo">
             <meta property="fb:app_id" content="1158479231981260">

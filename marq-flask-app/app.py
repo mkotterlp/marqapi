@@ -142,43 +142,48 @@ def generate_page():
             <script>
                 var pdfUrl = "{pdf_url}";
                 async function renderPdf(url) {{
-                    const pdfData = await fetch(url);
-                    if (!pdfData.ok) {{
-                        throw new Error('Failed to fetch the PDF. Status: ' + pdfData.status);
+                    try {{
+                        const pdfData = await fetch(url);
+                        if (!pdfData.ok) {{
+                            throw new Error('Failed to fetch the PDF. Status: ' + pdfData.status);
+                        }}
+                        const pdfBlob = await pdfData.blob();
+                        const arrayBuffer = await pdfBlob.arrayBuffer();
+                        const loadingTask = pdfjsLib.getDocument({{data: arrayBuffer}});
+                        const pdfDocument = await loadingTask.promise;
+                        let currentPageIndex = 0;
+                        const numPages = pdfDocument.numPages;
+                        for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {{
+                            const page = await pdfDocument.getPage(pageNumber);
+                            const scale = 1.0;
+                            const canvas = document.createElement("canvas");
+                            canvas.id = 'page-' + pageNumber;
+                            const context = canvas.getContext("2d");
+                            const viewport = page.getViewport({{scale}});
+                            canvas.width = viewport.width;
+                            canvas.height = viewport.height;
+                            const renderContext = {{
+                                canvasContext: context,
+                                viewport: viewport
+                            }};
+                            await page.render(renderContext).promise;
+                            document.getElementById("pdfViewer").appendChild(canvas);
+                        }}
+                        updateNavigation(); // Initial call to set the button state correctly
+                        document.getElementById('pdfViewer').addEventListener('scroll', () => {{
+                            updateNavigation();
+                        }});
+                        document.getElementById('nextPage').addEventListener('click', () => {{
+                            scrollPdfViewer('next');
+                        }});
+                        document.getElementById('prevPage').addEventListener('click', () => {{
+                            scrollPdfViewer('prev');
+                        }});
+                    }} catch (error) {{
+                        console.error('Error rendering PDF:', error);
                     }}
-                    const pdfBlob = await pdfData.blob();
-                    const arrayBuffer = await pdfBlob.arrayBuffer();
-                    const loadingTask = pdfjsLib.getDocument({{data: arrayBuffer}});
-                    const pdfDocument = await loadingTask.promise;
-                    let currentPageIndex = 0;
-                    const numPages = pdfDocument.numPages;
-                    for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {{
-                        const page = await pdfDocument.getPage(pageNumber);
-                        const scale = 1.0;
-                        const canvas = document.createElement("canvas");
-                        canvas.id = 'page-' + pageNumber;
-                        const context = canvas.getContext("2d");
-                        const viewport = page.getViewport({{ scale }});
-                        canvas.width = viewport.width;
-                        canvas.height = viewport.height;
-                        const renderContext = {{
-                            canvasContext: context,
-                            viewport: viewport
-                        }};
-                        await page.render(renderContext).promise;
-                        document.getElementById("pdfViewer").appendChild(canvas);
-                    }}
-                    updateNavigation(); // Initial call to set the button state correctly
-                    document.getElementById('pdfViewer').addEventListener('scroll', () => {{
-                        updateNavigation();
-                    }});
-                    document.getElementById('nextPage').addEventListener('click', () => {{
-                        scrollPdfViewer('next');
-                    }});
-                    document.getElementById('prevPage').addEventListener('click', () => {{
-                        scrollPdfViewer('prev');
-                    }});
                 }}
+                renderPdf(pdfUrl);
                 function updateNavigation() {{
                     const pdfViewer = document.getElementById("pdfViewer");
                     const atStart = pdfViewer.scrollLeft === 0;

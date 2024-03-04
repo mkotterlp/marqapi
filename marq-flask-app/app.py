@@ -259,6 +259,8 @@ def generate_page():
 @app.route('/generate-pdf', methods=['POST'])
 def generate_pdf():
     try:
+        client = storage.Client()
+        bucket = client.bucket('runapps_default-wwdwyp')
         data = request.json
         pdf_url = data.get('pdf_url', '')
 
@@ -291,6 +293,8 @@ def generate_pdf():
 @app.route('/upload-image', methods=['POST'])
 def upload_image():
     try:
+        client = storage.Client()
+        bucket = client.bucket('runapps_default-wwdwyp')
         data = request.json
         temp_img_url = data.get('temp_img_url')
 
@@ -323,6 +327,8 @@ def upload_image():
 
 @app.route('/files/<filename>')
 def serve_file(filename):
+    from google.cloud import storage
+    client = storage.Client()
     bucket = client.bucket('runapps_default-wwdwyp')
     blob = bucket.blob(filename)
     response = make_response(blob.download_as_bytes())
@@ -332,6 +338,8 @@ def serve_file(filename):
 
 @app.route('/pdfs/<filename>')
 def serve_pdf(filename):
+    from google.cloud import storage
+    client = storage.Client()
     bucket = client.bucket('runapps_default-wwdwyp')
     blob = bucket.blob(filename)
     if blob.exists():
@@ -344,6 +352,8 @@ def serve_pdf(filename):
 
 @app.route('/images/<filename>')
 def serve_image(filename):
+    from google.cloud import storage
+    client = storage.Client()
     bucket = client.bucket('runapps_default-wwdwyp')
     blob = bucket.blob(filename)
     if blob.exists():

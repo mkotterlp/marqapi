@@ -20,6 +20,7 @@ def generate_page():
         pdf_url = data.get('pdf_url', '')
         email = data.get('email', '')
         property_id = data.get('property_id', '')
+        property_address = data.get('property_address', '')
         filename = f"{uuid.uuid4()}.html"
         webpage_url = f"https://storage.googleapis.com/{bucket.name}/{filename}"
 
@@ -32,6 +33,7 @@ def generate_page():
             <meta property="og:type" content="website" />
             <meta property="og:title" content="{title}" />
             <meta property="og:image" content="{image_url}" />
+            <meta property="og:description" content="{property_address}" />
             <meta property="og:image:alt" content="Real estate listing photo">
             <meta property="fb:app_id" content="1158479231981260">
             <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -122,6 +124,7 @@ def generate_page():
         <body>
             <div id="requestForm" class="request-form">
                 <h3>Request info on this property</h3>
+                <h4>{property_address}</h4>
                 <form id="leadForm">
                     <input type="email" id="lead_email" name="lead_email" placeholder="Your email" required />
                     <input type="text" id="lead_name" name="lead_name" placeholder="Your name" required />

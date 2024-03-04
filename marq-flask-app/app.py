@@ -328,13 +328,12 @@ def upload_image():
 
 @app.route('/files/<filename>')
 def serve_file(filename):
-    from google.cloud import storage
     client = storage.Client()
     bucket = client.bucket('runapps_default-wwdwyp')
     blob = bucket.blob(filename)
     response = make_response(blob.download_as_bytes())
-    response.headers.set('Content-Type', 'application/octet-stream')
-    response.headers.set('Content-Disposition', 'attachment', filename=filename)
+    response.headers.set('Content-Type', 'text/html')
+    response.headers.set('Content-Disposition', f'inline; filename={filename}')
     return response
 
 @app.route('/pdfs/<filename>')

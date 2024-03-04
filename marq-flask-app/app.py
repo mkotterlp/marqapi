@@ -20,15 +20,15 @@ def generate_page():
         pdf_url = data.get('pdf_url', '')
         email = data.get('email', '')
         property_id = data.get('property_id', '')
-        webpage_url = data.get('webpage_url', '')
-
         filename = f"{uuid.uuid4()}.html"
+        webpage_url = f"https://storage.googleapis.com/{bucket.name}/{filename}"
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>{title}</title>
-            <meta property="og:url" content="https://storage.googleapis.com/{bucket.name}/{filename}" />
+            <meta property="og:url" content="{webpage_url}" />
             <meta property="og:type" content="website" />
             <meta property="og:title" content="{title}" />
             <meta property="og:image" content="{image_url}" />

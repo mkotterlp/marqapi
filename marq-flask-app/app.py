@@ -18,6 +18,9 @@ def generate_page():
         title = data.get('title', 'View my listing')
         image_url = data.get('image_url', '')
         pdf_url = data.get('pdf_url', '')
+        email = data.get('email', '')
+        property_id = data.get('property_id', '')
+        webpage_url = data.get('webpage_url', '')
 
         filename = f"{uuid.uuid4()}.html"
         html_content = f"""
@@ -31,33 +34,109 @@ def generate_page():
             <meta property="og:image" content="{image_url}" />
             <meta property="og:image:alt" content="Real estate listing photo">
             <meta property="fb:app_id" content="1158479231981260">
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
             <style>
-                #pdfViewer {
-                    max-height: 90vh;
-                    overflow-y: auto;
+                * {{
+                    font-family: 'Poppins', sans-serif;
+                }}
+                h1, h2, h3, h4, h5, h6 {{
+                    font-family: 'Poppins', sans-serif;
+                    font-weight: 600; 
+                }}
+                p {{
+                    font-family: 'Poppins', sans-serif;
+                    font-weight: 400;  
+                    margin:0px;
+                }}
+                .svg-icon {{
+                    width:100%;
+                    height:30px;
+                }} 
+                .request-form {{
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    width: 300px;
+                    background: white;
+                    padding: 15px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    border-radius: 8px;
+                    z-index: 1000;
+                }}
+                .request-form h3 {{
+                    margin-top: 0;
+                }}
+                .request-form form {{
+                    display: flex;
+                    flex-direction: column;
+                }}
+                .request-form input,
+                .request-form textarea,
+                .request-form button {{
+                    margin: 5px 0;
+                    padding: 10px;
+                }}
+                .request-form button {{
+                    background-color: #EE3524;
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                }}
+                .request-form button:hover {{
+                    background-color: #0056b3;
+                }}
+                #pdfViewer {{
+                    width: 100%;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    white-space: nowrap;
                     text-align: center;
                     scroll-behavior: smooth;
-                }
-                .navigation { text-align: center; }
-                .button {
+                }}
+                .navigation {{ 
+                    text-align: center; 
+                    position: fixed;
+                    bottom: 0;
+                    width: 100%;
+                }}
+                .button {{
                     cursor: pointer;
                     padding: 10px;
                     margin: 5px;
-                    background-color: #007bff;
+                    background-color: #212121;
                     color: white;
                     border: none;
                     border-radius: 5px;
-                }
-                .button:hover {
-                    background-color: #0056b3;
-                }
+                }}
+                .button:disabled {{
+                    background-color: #ccc;
+                }}
+                .button:hover:not(:disabled) {{
+                    background-color: #5d636b;
+                }}
+                canvas {{
+                    display: inline-block;
+                }}
             </style>
         </head>
         <body>
+            <div id="requestForm" class="request-form">
+                <h3>Request info on this property</h3>
+                <form id="leadForm">
+                    <input type="email" id="lead_email" name="lead_email" placeholder="Your email" required />
+                    <input type="text" id="lead_name" name="lead_name" placeholder="Your name" required />
+                    <input type="text" id="lead_phone" name="lead_phone" placeholder="Your phone number" required />
+                    <textarea id="lead_message" name="lead_message" placeholder="Message"></textarea>
+                    <input type="hidden" id="email" name="email" value="{email}" />
+                    <input type="hidden" id="property_id" name="property_id" value="{property_id}" />
+                    <input type="hidden" id="webpage_url" name="webpage_url" value="{webpage_url}" />
+                    <button type="submit">Request info</button>
+                </form>
+            </div>
             <div id="pdfViewer"></div>
             <div class="navigation">
-                <button id="prevPage" class="button">Previous</button>
-                <button id="nextPage" class="button">Next</button>
+                <button id="prevPage" class="button"><svg class="svg-icon" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M725.333333 469.333333H401.493333l140.8-140.373333a42.666667 42.666667 0 1 0-60.586666-60.586667l-213.333334 213.333334a42.666667 42.666667 0 0 0-8.96 14.08 42.666667 42.666667 0 0 0 0 32.426666 42.666667 42.666667 0 0 0 8.96 14.08l213.333334 213.333334a42.666667 42.666667 0 0 0 60.586666 0 42.666667 42.666667 0 0 0 0-60.586667L401.493333 554.666667H725.333333a42.666667 42.666667 0 0 0 0-85.333334z"  /></svg></button>
+                <button id="nextPage" class="button"><svg class="svg-icon" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M764.586667 495.786667a42.666667 42.666667 0 0 0-8.96-14.08l-213.333334-213.333334a42.666667 42.666667 0 0 0-60.586666 60.586667l140.8 140.373333H298.666667a42.666667 42.666667 0 0 0 0 85.333334h323.84l-140.8 140.373333a42.666667 42.666667 0 0 0 0 60.586667 42.666667 42.666667 0 0 0 60.586666 0l213.333334-213.333334a42.666667 42.666667 0 0 0 8.96-14.08 42.666667 42.666667 0 0 0 0-32.426666z"  /></svg></button>
             </div>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
             <script>
@@ -89,26 +168,77 @@ def generate_page():
                         await page.render(renderContext).promise;
                         document.getElementById("pdfViewer").appendChild(canvas);
                     }}
-
-                    document.getElementById('nextPage').addEventListener('click', () => {{
-                        if (currentPageIndex < numPages - 1) {{
-                            currentPageIndex++;
-                            document.getElementById('page-' + (currentPageIndex + 1)).scrollIntoView({{ behavior: 'smooth' }});
-                        }}
+                    updateNavigation(); // Initial call to set the button state correctly
+                    document.getElementById('pdfViewer').addEventListener('scroll', () => {{
+                        updateNavigation();
                     }});
-
+                    document.getElementById('nextPage').addEventListener('click', () => {{
+                        scrollPdfViewer('next');
+                    }});
                     document.getElementById('prevPage').addEventListener('click', () => {{
-                        if (currentPageIndex > 0) {{
-                            currentPageIndex--;
-                            document.getElementById('page-' + (currentPageIndex + 1)).scrollIntoView({{ behavior: 'smooth' }});
-                        }}
+                        scrollPdfViewer('prev');
                     }});
                 }}
-                renderPdf(pdfUrl);
+                function updateNavigation() {{
+                    const pdfViewer = document.getElementById("pdfViewer");
+                    const atStart = pdfViewer.scrollLeft === 0;
+                    const atEnd = pdfViewer.scrollLeft + pdfViewer.offsetWidth >= pdfViewer.scrollWidth;
+                    document.getElementById('prevPage').disabled = atStart;
+                    document.getElementById('nextPage').disabled = atEnd;
+                }}
+                function scrollPdfViewer(direction) {{
+                    const pdfViewer = document.getElementById("pdfViewer");
+                    const scrollAmount = pdfViewer.offsetWidth - 100; // Adjust the 100 to add some margin if needed
+                    if (direction === 'next' && !document.getElementById('nextPage').disabled) {{
+                        pdfViewer.scrollLeft += scrollAmount;
+                    }} else if (direction === 'prev' && !document.getElementById('prevPage').disabled) {{
+                        pdfViewer.scrollLeft -= scrollAmount;
+                    }}
+                }}
+                document.getElementById('leadForm').addEventListener('submit', function(event) {{
+                    event.preventDefault();
+                    const form = document.getElementById('requestForm');
+                    const payload = {{
+                        email: document.getElementById('email').value,
+                        property_id: document.getElementById('property_id').value,
+                        webpage_url: document.getElementById('webpage_url').value,
+                        lead_email: document.getElementById('lead_email').value,
+                        lead_phone: document.getElementById('lead_phone').value,
+                        lead_message: document.getElementById('lead_message').value,
+                        lead_name: document.getElementById('lead_name').value,
+                    }};
+                    fetch('https://serhant.fastgenapp.com/submit-lead', {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json',
+                        }},
+                        body: JSON.stringify(payload),
+                    }})
+                    .then(response => response.json())
+                    .then(data => {{
+                        console.log('Success:', data);
+                        form.style.display = 'none';
+                        const successMessage = document.createElement('div');
+                        successMessage.textContent = 'Your request has been submitted successfully!';
+                        successMessage.style.position = 'fixed';
+                        successMessage.style.bottom = '20px';
+                        successMessage.style.right = '20px';
+                        successMessage.style.backgroundColor = 'white';
+                        successMessage.style.padding = '15px';
+                        successMessage.style.borderRadius = '8px';
+                        successMessage.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                        document.body.appendChild(successMessage);
+                    }})
+                    .catch((error) => {{
+                        console.error('Error:', error);
+                    }});
+                }});
             </script>
         </body>
         </html>
         """
+
+
 
         blob = bucket.blob(filename)
         blob.upload_from_string(html_content, content_type='text/html')

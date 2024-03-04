@@ -140,7 +140,6 @@ def generate_page():
             </div>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
             <script>
-                var pdfUrl = "{pdf_url}";
                 async function renderPdf(url) {{
                     try {{
                         const pdfData = await fetch(url);
@@ -183,7 +182,7 @@ def generate_page():
                         console.error('Error rendering PDF:', error);
                     }}
                 }}
-                renderPdf(pdfUrl);
+                renderPdf({pdf_url});
                 function updateNavigation() {{
                     const pdfViewer = document.getElementById("pdfViewer");
                     const atStart = pdfViewer.scrollLeft === 0;

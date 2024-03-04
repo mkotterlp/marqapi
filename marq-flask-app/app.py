@@ -22,7 +22,7 @@ def generate_page():
         property_id = data.get('property_id', '')
         property_address = data.get('property_address', '')
         filename = f"{uuid.uuid4()}.html"
-        webpage_url = f"https://marq-social.web.app/files/{filename}"
+        webpage_url = f"https://marqsocial.web.app/files/{filename}"
 
         html_content = f"""
         <!DOCTYPE html>
@@ -280,7 +280,7 @@ def generate_pdf():
         bucket = client.bucket('runapps_default-wwdwyp')
         pdf_blob = bucket.blob(filename)
         pdf_blob.upload_from_string(pdf_content, content_type='application/pdf')
-        webpage_url = f"https://marq-social.web.app/pdfs/{filename}"
+        webpage_url = f"https://marqsocial.web.app/pdfs/{filename}"
         return jsonify({'pdf_url': webpage_url})
     
     except Exception as e:
@@ -314,7 +314,7 @@ def upload_image():
         image_blob.upload_from_string(image_content, content_type='image/jpeg')  # Adjust content_type based on the image
 
         # Generate a branded URL pointing to the Flask route for serving the image
-        webpage_url = f"https://marq-social.web.app/images/{filename}"
+        webpage_url = f"https://marqsocial.web.app/images/{filename}"
         return jsonify({'image_url': webpage_url})
     except Exception as e:
         logging.error(f"Error occurred in upload_image: {str(e)}")

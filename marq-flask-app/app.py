@@ -251,7 +251,8 @@ def generate_page():
         blob = bucket.blob(filename)
         blob.upload_from_string(html_content, content_type='text/html')
         logging.info(f"HTML file created and uploaded successfully: {blob.public_url}")
-        return jsonify({'url': blob.public_url})
+        webpage_url = f"https://marqsocial.web.app/files/{filename}"
+        return jsonify({'url': webpage_url})
     except Exception as e:
         logging.error(f"Error occurred in generate_page: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500

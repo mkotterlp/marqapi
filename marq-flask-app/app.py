@@ -22,7 +22,7 @@ def generate_page():
         property_id = data.get('property_id', '')
         property_address = data.get('property_address', '')
         filename = f"{uuid.uuid4()}.html"
-        webpage_url = f"https://storage.googleapis.com/{bucket.name}/{filename}"
+        webpage_url = f"https://marq-social.web.app/files/{filename}"
 
         html_content = f"""
         <!DOCTYPE html>
@@ -280,8 +280,8 @@ def generate_pdf():
         bucket = client.bucket('runapps_default-wwdwyp')
         pdf_blob = bucket.blob(filename)
         pdf_blob.upload_from_string(pdf_content, content_type='application/pdf')
-
-        return jsonify({'pdf_url': pdf_blob.public_url})
+        webpage_url = f"https://marq-social.web.app/pdfs/{filename}"
+        return jsonify({'pdf_url': webpage_url})
     
     except Exception as e:
         logging.error(f"Error occurred in generate_pdf: {str(e)}")
@@ -293,7 +293,6 @@ def upload_image():
     try:
         data = request.json
         temp_img_url = data.get('temp_img_url')
-        userid = data.get('userid')  # Assuming you might want to use this for something specific
 
         if not temp_img_url:
             return jsonify({'error': 'No image URL provided'}), 400
@@ -306,15 +305,54 @@ def upload_image():
         image_content = response.content
         client = storage.Client()
         bucket = client.bucket('runapps_default-wwdwyp')
-        image_blob = bucket.blob(f"{uuid.uuid4()}.jpg")  # Or use another file extension as needed
+
+        # Generate a unique filename for the image
+        filename = f"{uuid.uuid4()}.jpg"  # Or use another file extension as needed
+        image_blob = bucket.blob(filename)
 
         # Upload the image to Google Cloud Storage
         image_blob.upload_from_string(image_content, content_type='image/jpeg')  # Adjust content_type based on the image
 
-        return jsonify({'image_url': image_blob.public_url})
+        # Generate a branded URL pointing to the Flask route for serving the image
+        webpage_url = f"https://marq-social.web.app/images/{filename}"
+        return jsonify({'image_url': webpage_url})
     except Exception as e:
         logging.error(f"Error occurred in upload_image: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
+
+
+@app.route('/files/<filename>')
+def serve_file(filename):
+    bucket = client.bucket('runapps_default-wwdwyp')
+    blob = bucket.blob(filename)
+    response = make_response(blob.download_as_bytes())
+    response.headers.set('Content-Type', 'application/octet-stream')
+    response.headers.set('Content-Disposition', 'attachment', filename=filename)
+    return response
+
+@app.route('/pdfs/<filename>')
+def serve_pdf(filename):
+    bucket = client.bucket('runapps_default-wwdwyp')
+    blob = bucket.blob(filename)
+    if blob.exists():
+        response = make_response(blob.download_as_bytes())
+        response.headers.set('Content-Type', 'application/pdf')
+        response.headers.set('Content-Disposition', 'inline; filename=' + filename)
+        return response
+    else:
+        return "File not found", 404
+
+@app.route('/images/<filename>')
+def serve_image(filename):
+    bucket = client.bucket('runapps_default-wwdwyp')
+    blob = bucket.blob(filename)
+    if blob.exists():
+        response = make_response(blob.download_as_bytes())
+        response.headers.set('Content-Type', 'image/jpeg')  # Adjust the content type based on your image format
+        response.headers.set('Content-Disposition', 'inline; filename=' + filename)
+        return response
+    else:
+        return "File not found", 404
 
 
 if __name__ == "__main__":

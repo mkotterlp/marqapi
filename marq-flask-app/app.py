@@ -16,6 +16,7 @@ def generate_page():
 
         data = request.json
         title = data.get('title', 'View my listing')
+        description = data.get('description', 'View my listing')
         image_url = data.get('image_url', '')
         pdf_url = data.get('pdf_url', '')
         email = data.get('email', '')
@@ -33,7 +34,7 @@ def generate_page():
             <meta property="og:type" content="website" />
             <meta property="og:title" content="{title}" />
             <meta property="og:image" content="{image_url}" />
-            <meta property="og:description" content="{property_address}" />
+            <meta property="og:description" content="{description}" />
             <meta property="og:image:alt" content="Real estate listing photo">
             <meta property="fb:app_id" content="1158479231981260">
             <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">

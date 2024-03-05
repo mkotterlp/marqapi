@@ -258,6 +258,58 @@ def generate_page():
         logging.error(f"Error occurred in generate_page: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
+@app.route('/generate-images', methods=['POST'])
+def generate_images_page():
+    try:
+        client = storage.Client()
+        bucket = client.bucket('runapps_default-wwdwyp')
+
+        data = request.json
+        image_urls = data.get('image_urls', [])
+        title = data.get('title', 'View Images')
+        filename = f"{uuid.uuid4()}.html"
+        webpage_url = f"https://marqsocial.web.app/files/{filename}"
+
+        # Generate the HTML content dynamically based on the image URLs
+        images_html = ''.join([f'<img src="{url}" style="width:100%;margin-bottom:10px;" />' for url in image_urls])
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>{title}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+            <style>
+                * {{
+                    font-family: 'Poppins', sans-serif;
+                }}
+                img {{
+                    max-width: 100%;
+                    height: auto;
+                    margin-bottom: 20px;
+                }}
+            </style>
+        </head>
+        <body>
+            <h1>{title}</h1>
+            <div>
+                {images_html}
+            </div>
+        </body>
+        </html>
+        """
+
+        # Upload the HTML content to the Google Cloud Storage
+        blob = bucket.blob(filename)
+        blob.upload_from_string(html_content, content_type='text/html')
+        logging.info(f"HTML file with images created and uploaded successfully: {blob.public_url}")
+
+        return jsonify({'url': webpage_url})
+    except Exception as e:
+        logging.error(f"Error occurred in generate_images_page: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
+
+
 @app.route('/generate-pdf', methods=['POST'])
 def generate_pdf():
     try:

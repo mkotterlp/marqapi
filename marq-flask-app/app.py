@@ -361,7 +361,8 @@ def generate_qr_page():
             </style>
         </head>
         <body>
-            <h1 style="text-align:center;">{title}</h1>
+            <h1 style="text-align:center;padding:0px;margin-bottom:4px;margin-top:0px;margin-left:0px;margin-right:0px;">Scan to post to Instagram</h1>
+            <p style="text-align:center;margin:0px;">Scan the QR code with your mobile device. Once you have the page open on mobile, tap and hold to save each image and add them to your post</p>
             <div>
                 {qr_html}
             </div>

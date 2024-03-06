@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 import uuid
 import os
-import requests 
+import requests
 from google.cloud import storage
 import logging
 import qrcode

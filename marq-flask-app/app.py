@@ -453,7 +453,7 @@ def generate_qr_page():
                     height: auto;
                     margin: 20px 0;
                 }}
-                containerarea {{
+                .containerarea {{
                     max-width:400px;
                     margin:0 auto;
                 }}

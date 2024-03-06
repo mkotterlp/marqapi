@@ -313,6 +313,41 @@ def generate_images_page():
         logging.error(f"Error occurred in generate_images_page: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
+@app.route('/generate-pdf', methods=['POST'])
+def generate_pdf():
+    try:
+        client = storage.Client()
+        bucket = client.bucket('runapps_default-wwdwyp')
+        data = request.json
+        pdf_url = data.get('pdf_url', '')
+
+        if not pdf_url:
+            logging.error('No PDF URL provided')
+            return jsonify({'error': 'No PDF URL provided'}), 400
+
+        # Attempt to download the PDF from the URL
+        response = requests.get(pdf_url)
+        logging.info(f'Response status code from PDF URL {pdf_url}: {response.status_code}')
+
+        if response.status_code != 200:
+            logging.error(f'Failed to download PDF from URL {pdf_url}. Status code: {response.status_code}')
+            return jsonify({'error': 'Failed to download PDF from URL'}), 500
+
+        pdf_content = response.content
+
+        # Upload the PDF content to Google Cloud Storage
+        filename = f"{uuid.uuid4()}.pdf"
+        pdf_blob = bucket.blob(filename)
+        pdf_blob.upload_from_string(pdf_content, content_type='application/pdf')
+        webpage_url = f"https://marqsocial.web.app/pdfs/{filename}"
+        logging.info(f'PDF uploaded successfully to {webpage_url}')
+        return jsonify({'pdf_url': webpage_url})
+    
+    except Exception as e:
+        logging.error(f"Error occurred in generate_pdf: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
+
+
 
 @app.route('/generate-qr-page', methods=['POST'])
 def generate_qr_page():
@@ -381,38 +416,6 @@ def generate_qr_page():
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
 
-@app.route('/generate-pdf', methods=['POST'])
-def generate_pdf():
-    try:
-        client = storage.Client()
-        bucket = client.bucket('runapps_default-wwdwyp')
-        data = request.json
-        pdf_url = data.get('pdf_url', '')
-
-        if not pdf_url:
-            return jsonify({'error': 'No PDF URL provided'}), 400
-
-        # Generate a unique filename for the PDF file
-        filename = f"{uuid.uuid4()}.pdf"
-
-        # Download the PDF from the URL
-        response = requests.get(pdf_url)
-        if response.status_code != 200:
-            return jsonify({'error': 'Failed to download PDF from URL'}), 500
-
-        pdf_content = response.content
-
-        # Upload the PDF content to Google Cloud Storage
-        client = storage.Client()
-        bucket = client.bucket('runapps_default-wwdwyp')
-        pdf_blob = bucket.blob(filename)
-        pdf_blob.upload_from_string(pdf_content, content_type='application/pdf')
-        webpage_url = f"https://marqsocial.web.app/pdfs/{filename}"
-        return jsonify({'pdf_url': webpage_url})
-    
-    except Exception as e:
-        logging.error(f"Error occurred in generate_pdf: {str(e)}")
-        return jsonify({'error': 'An unexpected error occurred'}), 500
 
 
 @app.route('/upload-image', methods=['POST'])

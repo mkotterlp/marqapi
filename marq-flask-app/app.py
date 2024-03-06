@@ -4,6 +4,7 @@ import os
 import requests 
 from google.cloud import storage
 import logging
+from urllib.parse import quote
 
 
 app = Flask(__name__)
@@ -431,7 +432,7 @@ def generate_qr_page():
         webpage_url = f"https://marqsocial.web.app/files/{filename}"
 
         # Use the Google Chart API to generate the QR code
-        encoded_url = urllib.parse.quote(url)
+        encoded_url = quote(url)
         qr_url = f"https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl={encoded_url}&choe=UTF-8"
 
         # Embed the QR code image in the HTML content using the Google Chart API URL

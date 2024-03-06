@@ -453,13 +453,19 @@ def generate_qr_page():
                     height: auto;
                     margin: 20px 0;
                 }}
+                containerarea {{
+                    max-width:400px;
+                    margin:0 auto;
+                }}
             </style>
         </head>
         <body>
-            <h1 style="text-align:center;padding:0px;margin-bottom:4px;margin-top:0px;margin-left:0px;margin-right:0px;">Scan to post to Instagram</h1>
+            <div class="containerarea">
+            <h1 style="text-align:center;padding:0px;margin-bottom:4px;margin-top:0px;margin-left:0px;margin-right:0px;">Scan to post to Instagram on mobile</h1>
             <p style="text-align:center;margin:0px;">Scan the QR code with your mobile device. Once you have the page open on mobile, tap and hold to save each image and add them to your post</p>
             <div>
                 {qr_html}
+            </div>
             </div>
         </body>
         </html>

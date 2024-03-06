@@ -1,12 +1,9 @@
 from flask import Flask, request, jsonify, make_response
 import uuid
 import os
-import requests
+import requests 
 from google.cloud import storage
 import logging
-import qrcode
-from io import BytesIO
-import base64
 
 
 app = Flask(__name__)
@@ -313,6 +310,7 @@ def generate_images_page():
         logging.error(f"Error occurred in generate_images_page: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
 
+
 @app.route('/generate-pdf', methods=['POST'])
 def generate_pdf():
     try:
@@ -322,100 +320,29 @@ def generate_pdf():
         pdf_url = data.get('pdf_url', '')
 
         if not pdf_url:
-            logging.error('No PDF URL provided')
             return jsonify({'error': 'No PDF URL provided'}), 400
 
-        # Attempt to download the PDF from the URL
-        response = requests.get(pdf_url)
-        logging.info(f'Response status code from PDF URL {pdf_url}: {response.status_code}')
+        # Generate a unique filename for the PDF file
+        filename = f"{uuid.uuid4()}.pdf"
 
+        # Download the PDF from the URL
+        response = requests.get(pdf_url)
         if response.status_code != 200:
-            logging.error(f'Failed to download PDF from URL {pdf_url}. Status code: {response.status_code}')
             return jsonify({'error': 'Failed to download PDF from URL'}), 500
 
         pdf_content = response.content
 
         # Upload the PDF content to Google Cloud Storage
-        filename = f"{uuid.uuid4()}.pdf"
+        client = storage.Client()
+        bucket = client.bucket('runapps_default-wwdwyp')
         pdf_blob = bucket.blob(filename)
         pdf_blob.upload_from_string(pdf_content, content_type='application/pdf')
         webpage_url = f"https://marqsocial.web.app/pdfs/{filename}"
-        logging.info(f'PDF uploaded successfully to {webpage_url}')
         return jsonify({'pdf_url': webpage_url})
     
     except Exception as e:
         logging.error(f"Error occurred in generate_pdf: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
-
-
-
-@app.route('/generate-qr-page', methods=['POST'])
-def generate_qr_page():
-    try:
-        client = storage.Client()
-        bucket = client.bucket('runapps_default-wwdwyp')
-
-        data = request.json
-        url = data.get('url', '')
-        title = data.get('title', 'QR Code Page')
-        filename = f"{uuid.uuid4()}.html"
-        webpage_url = f"https://marqsocial.web.app/files/{filename}"
-
-        # Generate QR code
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(url)
-        qr.make(fit=True)
-        img = qr.make_image(fill='black', back_color='white')
-        buffered = BytesIO()
-        img.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-
-        # Embed the QR code in the HTML content
-        qr_html = f'<img src="data:image/png;base64,{img_str}" alt="QR Code" style="display:block; margin:auto;"/>'
-
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>{title}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-            <style>
-                * {{
-                    font-family: 'Poppins', sans-serif;
-                }}
-                img {{
-                    max-width: 100%;
-                    height: auto;
-                    margin: 20px 0;
-                }}
-            </style>
-        </head>
-        <body>
-            <h1 style="text-align:center;padding:0px;margin-bottom:4px;margin-top:0px;margin-left:0px;margin-right:0px;">Scan to post to Instagram</h1>
-            <p style="text-align:center;margin:0px;">Scan the QR code with your mobile device. Once you have the page open on mobile, tap and hold to save each image and add them to your post</p>
-            <div>
-                {qr_html}
-            </div>
-        </body>
-        </html>
-        """
-
-        # Upload the HTML content to Google Cloud Storage
-        blob = bucket.blob(filename)
-        blob.upload_from_string(html_content, content_type='text/html')
-        logging.info(f"HTML file with QR code created and uploaded successfully: {blob.public_url}")
-
-        return jsonify({'url': webpage_url})
-    except Exception as e:
-        logging.error(f"Error occurred in generate_qr_page: {str(e)}")
-        return jsonify({'error': 'An unexpected error occurred'}), 500
-
-
 
 
 @app.route('/upload-image', methods=['POST'])

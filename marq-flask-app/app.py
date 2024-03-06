@@ -418,6 +418,61 @@ def serve_image(filename):
     else:
         return "File not found", 404
 
+@app.route('/generate-qr-page', methods=['POST'])
+def generate_qr_page():
+    try:
+        client = storage.Client()
+        bucket = client.bucket('runapps_default-wwdwyp')
+
+        data = request.json
+        url = data.get('url', '')
+        title = data.get('title', 'QR Code Page')
+        filename = f"{uuid.uuid4()}.html"
+        webpage_url = f"https://marqsocial.web.app/files/{filename}"
+
+        # Use the Google Chart API to generate the QR code
+        encoded_url = urllib.parse.quote(url)
+        qr_url = f"https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl={encoded_url}&choe=UTF-8"
+
+        # Embed the QR code image in the HTML content using the Google Chart API URL
+        qr_html = f'<img src="{qr_url}" alt="QR Code" style="display:block; margin:auto;"/>'
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>{title}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+            <style>
+                * {{
+                    font-family: 'Poppins', sans-serif;
+                }}
+                img {{
+                    max-width: 100%;
+                    height: auto;
+                    margin: 20px 0;
+                }}
+            </style>
+        </head>
+        <body>
+            <h1 style="text-align:center;padding:0px;margin-bottom:4px;margin-top:0px;margin-left:0px;margin-right:0px;">Scan to post to Instagram</h1>
+            <p style="text-align:center;margin:0px;">Scan the QR code with your mobile device. Once you have the page open on mobile, tap and hold to save each image and add them to your post</p>
+            <div>
+                {qr_html}
+            </div>
+        </body>
+        </html>
+        """
+
+        # Upload the HTML content to Google Cloud Storage
+        blob = bucket.blob(filename)
+        blob.upload_from_string(html_content, content_type='text/html')
+        logging.info(f"HTML file with QR code created and uploaded successfully: {blob.public_url}")
+
+        return jsonify({'url': webpage_url})
+    except Exception as e:
+        logging.error(f"Error occurred in generate_qr_page: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8080))
